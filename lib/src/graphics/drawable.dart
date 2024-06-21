@@ -1,5 +1,5 @@
-import 'package:stayv2/src/graphics/screen.dart';
+import 'package:stayv2/src/graphics/base_screen.dart';
 
 abstract class Drawable {
-  void draw(Screen target);
+  void draw(BaseScreen target);
 }

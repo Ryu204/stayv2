@@ -21,13 +21,14 @@ final _colorsMap = {
   ConsoleColor.yellow: Vector4(.5, .5, 0, 1)
 };
 
-closestColorMatch(Color c) {
-  final closest = double.infinity;
+ConsoleColor closestColorMatch(Color c) {
+  var closest = double.infinity;
   var res = ConsoleColor.black;
   for (final i in _colorsMap.entries) {
     final squared = c.distanceTo(i.value);
     if (squared < closest) {
       res = i.key;
+      closest = squared;
     }
   }
   return res;
