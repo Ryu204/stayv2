@@ -2,15 +2,67 @@ import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:vector_math/vector_math.dart';
 
+enum ConsoleSymbol {
+  vertical(1),
+  horizontal(2),
+  swayLeft(4),
+  swayRight(8),
+  dot(16);
+
+  final int flag;
+
+  const ConsoleSymbol(this.flag);
+
+  static String get(int c) {
+    return switch (c) {
+      1 => '|',
+      2 => '-',
+      3 => '+',
+      4 => '\\',
+      5 => '.',
+      6 => '.',
+      7 => '.',
+      8 => '/',
+      9 => '.',
+      10 => '.',
+      11 => '.',
+      12 => 'X',
+      13 => '.',
+      14 => '.',
+      15 => '.',
+      16 => '*',
+      > 16 && < 32 => get(c - 16),
+      _ => ' '
+    };
+  }
+}
+
+class Cell<T> {
+  T bgr;
+  int symbols;
+
+  Cell(this.bgr, this.symbols);
+
+  @override
+  bool operator ==(Object other) {
+    if (other is Cell == false) return false;
+    final cell = other as Cell;
+    return symbols == cell.symbols && bgr == cell.bgr;
+  }
+
+  @override
+  int get hashCode => Object.hash(bgr, symbols);
+}
+
 /// Keeps track of colors on the screen
 ///
 /// Including real game colors and indexed ones of console
 class ConsoleColorBuffer {
   var _w = 0;
   var _h = 0;
-  final _trueColor = <Color>[];
+  final _trueColor = <Cell<Color>>[];
   final _displayDoubleBuffer =
-      List.generate(2, (_) => <ConsoleColor>[], growable: false);
+      List.generate(2, (_) => <Cell<ConsoleColor>>[], growable: false);
   var _activeDisplayBuffer = 0;
   var _needRefresh = true;
 
@@ -23,7 +75,7 @@ class ConsoleColorBuffer {
     if (_trueColor.length < count) {
       _trueColor.addAll(List.generate(
         count - _trueColor.length,
-        (_) => Colors.aliceBlue,
+        (_) => Cell(Colors.aliceBlue, 0),
       ));
     } else {
       _trueColor.length = count;
@@ -33,7 +85,7 @@ class ConsoleColorBuffer {
       if (buf.length < count) {
         buf.addAll(List.generate(
           count - buf.length,
-          (_) => ConsoleColor.black,
+          (_) => Cell(ConsoleColor.black, 0),
         ));
       } else {
         buf.length = count;
@@ -43,24 +95,29 @@ class ConsoleColorBuffer {
 
   void setAll(Color col) {
     for (final i in _trueColor) {
-      i.setFrom(col);
+      i.bgr.setFrom(col);
+      i.symbols = 0;
     }
   }
 
-  void set(int iw, int ih, Color c) {
-    _trueColor[ih * _w + iw].setFrom(c);
+  void set(int iw, int ih, {Color? fg, int symbol = 0}) {
+    final cell = _trueColor[ih * _w + iw];
+    if (fg != null) cell.bgr.setFrom(fg);
+    cell.symbols |= symbol;
   }
 
   /// Returns list of pixel needs to be updated after comparing to the last swap call.
-  List<(int iw, int ih, ConsoleColor c)> swap() {
-    final res = <(int iw, int ih, ConsoleColor c)>[];
+  List<(int iw, int ih, ConsoleColor c, String s)> swap() {
+    final res = <(int iw, int ih, ConsoleColor c, String s)>[];
     for (final (i, c) in _trueColor.indexed) {
-      final newColor = closestColorMatch(c);
-      _displayDoubleBuffer[_activeDisplayBuffer][i] = newColor;
+      final displayCell = _displayDoubleBuffer[_activeDisplayBuffer][i];
+      final newColor = closestColorMatch(c.bgr);
+      displayCell.bgr = newColor;
+      displayCell.symbols = c.symbols;
       final needsUpdate =
-          newColor != _displayDoubleBuffer[1 - _activeDisplayBuffer][i];
+          displayCell != _displayDoubleBuffer[1 - _activeDisplayBuffer][i];
       if (needsUpdate || _needRefresh) {
-        res.add((i % _w, i ~/ _w, newColor));
+        res.add((i % _w, i ~/ _w, newColor, ConsoleSymbol.get(c.symbols)));
       }
     }
     _activeDisplayBuffer = 1 - _activeDisplayBuffer;

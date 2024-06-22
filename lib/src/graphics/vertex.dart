@@ -1,6 +1,6 @@
 import 'package:vector_math/vector_math.dart';
 
-enum PrimitiveType { points, linestrip }
+enum PrimitiveType { points, lineLoop, line }
 
 class Vertex {
   var color = Colors.white;

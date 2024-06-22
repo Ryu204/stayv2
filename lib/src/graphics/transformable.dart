@@ -21,6 +21,12 @@ class Transformable {
     return this;
   }
 
+  Transformable setRotation(double rad, {Vector3? axis}) {
+    _rotation.setFrom(Quaternion.axisAngle(axis ?? Vector3(0, 0, 1), rad));
+    _setDirtyFlags();
+    return this;
+  }
+
   Transformable scale(Vector3 s) {
     _scale.multiply(s);
     _setDirtyFlags();
