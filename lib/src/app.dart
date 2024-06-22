@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 import 'package:stayv2/src/graphics/console_window.dart';
+import 'package:stayv2/src/graphics/render_state.dart';
+import 'package:stayv2/src/graphics/vertex.dart';
 import 'package:stayv2/src/utils/invoker.dart';
 import 'package:vector_math/vector_math.dart';
 
