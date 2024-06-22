@@ -1,16 +1,18 @@
 import 'package:dart_console/dart_console.dart';
+import 'package:meta/meta.dart';
+import 'package:stayv2/src/graphics/base_canvas.dart';
 import 'package:stayv2/src/graphics/color.dart';
-import 'package:stayv2/src/graphics/base_screen.dart';
+import 'package:stayv2/src/graphics/size_check.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:vector_math/vector_math.dart';
 
 /// Represents a 2D screen with pixels within a window
-class ConsoleScreen extends BaseScreen {
+class ConsoleWindow extends BaseCanvas with SizeCheck {
   final _colorBuffer = ConsoleColorBuffer();
   final _console = Console();
 
-  ConsoleScreen({super.checkSizeInterval = 0.5})
-      : super(hasResizeCallback: false) {
+  ConsoleWindow() {
+    startWatchSize(checkSizeInterval: 0.5);
     onSizeChanged +
         (size) {
           _colorBuffer.resize(size.x.toInt(), size.y.toInt());
@@ -38,5 +40,10 @@ class ConsoleScreen extends BaseScreen {
       _console.setBackgroundColor(c);
       _console.write(' ');
     }
+  }
+
+  @mustCallSuper
+  void shutdown() {
+    stopWatchSize();
   }
 }

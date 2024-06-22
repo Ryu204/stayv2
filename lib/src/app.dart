@@ -1,4 +1,5 @@
-import 'package:stayv2/src/graphics/console_screen.dart';
+import 'package:meta/meta.dart';
+import 'package:stayv2/src/graphics/console_window.dart';
 import 'package:stayv2/src/utils/invoker.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -24,7 +25,7 @@ class Application {
   var _isRunning = true;
   final _stopwatch = Stopwatch();
   final AppConfig _cfg;
-  final _windows = ConsoleScreen();
+  final _window = ConsoleWindow();
 
   Application(this._cfg);
 
@@ -51,6 +52,8 @@ class Application {
         hasNewContent = false;
       }
     }
+
+    shutdown();
   }
 
   void _update(double dt) {
@@ -58,7 +61,12 @@ class Application {
   }
 
   void _render(double t) {
-    _windows.clear(color: Colors.pink);
-    _windows.display();
+    _window.clear(color: Colors.cyan);
+    _window.display();
+  }
+
+  @mustCallSuper
+  void shutdown() {
+    _window.shutdown();
   }
 }
