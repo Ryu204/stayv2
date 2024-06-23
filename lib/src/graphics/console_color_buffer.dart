@@ -37,21 +37,29 @@ enum ConsoleSymbol {
   }
 }
 
-class Cell<T> {
-  T bgr;
+class ConsoleCell {
+  ConsoleColor bgr;
   int symbols;
 
-  Cell(this.bgr, this.symbols);
+  ConsoleCell(this.bgr, this.symbols);
 
   @override
   bool operator ==(Object other) {
-    if (other is Cell == false) return false;
-    final cell = other as Cell;
+    if (other is ConsoleCell == false) return false;
+    final cell = other as ConsoleCell;
     return symbols == cell.symbols && bgr == cell.bgr;
   }
 
   @override
   int get hashCode => Object.hash(bgr, symbols);
+}
+
+class TrueColorCell {
+  Color bgr;
+  int symbols;
+  double zBuffer;
+
+  TrueColorCell(this.bgr, this.symbols, this.zBuffer);
 }
 
 /// Keeps track of colors on the screen
@@ -60,9 +68,9 @@ class Cell<T> {
 class ConsoleColorBuffer {
   var _w = 0;
   var _h = 0;
-  final _trueColor = <Cell<Color>>[];
+  final _trueColor = <TrueColorCell>[];
   final _displayDoubleBuffer =
-      List.generate(2, (_) => <Cell<ConsoleColor>>[], growable: false);
+      List.generate(2, (_) => <ConsoleCell>[], growable: false);
   var _activeDisplayBuffer = 0;
   var _needRefresh = true;
 
@@ -75,7 +83,7 @@ class ConsoleColorBuffer {
     if (_trueColor.length < count) {
       _trueColor.addAll(List.generate(
         count - _trueColor.length,
-        (_) => Cell(Colors.aliceBlue, 0),
+        (_) => TrueColorCell(Colors.aliceBlue, 0, double.infinity),
       ));
     } else {
       _trueColor.length = count;
@@ -85,7 +93,7 @@ class ConsoleColorBuffer {
       if (buf.length < count) {
         buf.addAll(List.generate(
           count - buf.length,
-          (_) => Cell(ConsoleColor.black, 0),
+          (_) => ConsoleCell(ConsoleColor.black, 0),
         ));
       } else {
         buf.length = count;
@@ -100,8 +108,9 @@ class ConsoleColorBuffer {
     }
   }
 
-  void set(int iw, int ih, {Color? fg, int symbol = 0}) {
+  void set(int iw, int ih, double zBuf, {Color? fg, int symbol = 0}) {
     final cell = _trueColor[ih * _w + iw];
+    if (zBuf > cell.zBuffer) return;
     if (fg != null) cell.bgr.setFrom(fg);
     cell.symbols |= symbol;
   }

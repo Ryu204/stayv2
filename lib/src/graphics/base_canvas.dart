@@ -16,14 +16,24 @@ abstract class BaseCanvas extends SizeCheck {
   /// [x] and [y] is guranteed to be inside visible area of screen
   ///
   /// User should not call this method
-  void drawPoint(double x, double y, Color c);
+  void drawPoint(Vector3 pos, Color c);
 
   /// Draw a line in screen coordinate connecting 2 point [a],[b]
   ///
-  /// [a] and [b] is guranteed to be inside visible area of screen
+  /// User should not call this method
+  void drawLine(Vector3 a, Vector3 b, Color ca, Color cb);
+
+  /// Draw triangle [a][b][c]. Counter clockwise order is assumed
   ///
   /// User should not call this method
-  void drawLine(Vector2 a, Vector2 b, Color ca, Color cb);
+  void drawTriangle(
+    Vector3 a,
+    Vector3 b,
+    Vector3 c,
+    Color ca,
+    Color cb,
+    Color cc,
+  );
   void clear({Color color});
 
   /// Call `super.display()` first to update camera aspect ratio
@@ -48,16 +58,18 @@ abstract class BaseCanvas extends SizeCheck {
   }) {
     final mvp = camera.projectAndViewProduct().multiplied(st.transform);
     final (top, left, width, height) = (0.0, 0.0, displaySize.x, displaySize.y);
+
     final transformed = points.map((v) {
       final ndc = mvp.transformed3(v.position);
       final winSpace = camera.viewportTransform(
           top: top, left: left, width: width, height: height, ndc: ndc);
+      winSpace.y = height - 1 - winSpace.y;
       return winSpace;
     }).toList();
 
-    if (type == PrimitiveType.points) {
+    if (type == PrimitiveType.point) {
       for (final (i, v) in transformed.indexed) {
-        drawPoint(v.x, v.y, points[i].color);
+        drawPoint(v, points[i].color);
       }
     } else if (type == PrimitiveType.lineLoop && ebo == null) {
       final n = transformed.length;
@@ -66,16 +78,16 @@ abstract class BaseCanvas extends SizeCheck {
         for (var i = 1; i < n; ++i) {
           final (a, b) = (transformed[i - 1], transformed[i]);
           drawLine(
-            a.xy,
-            b.xy,
+            a,
+            b,
             points[i - 1].color,
             points[i].color,
           );
         }
       }
       drawLine(
-        transformed.last.xy,
-        transformed.first.xy,
+        transformed.last,
+        transformed.first,
         points.last.color,
         points.first.color,
       );
@@ -85,11 +97,23 @@ abstract class BaseCanvas extends SizeCheck {
       for (var j = 0; j < n; j += 2) {
         final (i, ipp) = (ebo[j], ebo[j + 1]);
         drawLine(
-          transformed[i].xy,
-          transformed[ipp].xy,
+          transformed[i],
+          transformed[ipp],
           points[i].color,
           points[ipp].color,
         );
+      }
+    } else if (type == PrimitiveType.triangle && ebo != null) {
+      final n = ebo.length;
+      assert(n % 3 == 0);
+      for (var j = 0; j < n; j += 3) {
+        final [a, b, c] = [j, j + 1, j + 2]
+            .map((i) => (
+                  transformed[ebo[i]],
+                  points[ebo[i]],
+                ))
+            .toList();
+        drawTriangle(a.$1, b.$1, c.$1, a.$2.color, b.$2.color, c.$2.color);
       }
     } else {
       throw UnimplementedError();

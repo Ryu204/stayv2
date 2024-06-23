@@ -1,7 +1,11 @@
+import 'dart:math';
+
+import 'package:collection/collection.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/base_canvas.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
+import 'package:stayv2/src/graphics/edge_function.dart';
 import 'package:vector_math/vector_math.dart';
 
 /// Represents a 2D screen with pixels within a window
@@ -43,13 +47,14 @@ class ConsoleWindow extends BaseCanvas {
   }
 
   @override
-  void drawPoint(double x, double y, Color c) {
-    _colorBuffer.set(x.toInt(), y.toInt(), fg: c);
+  void drawPoint(Vector3 pos, Color c) {
+    _colorBuffer.set(pos.x.toInt(), pos.y.toInt(), pos.x, fg: c);
   }
 
+  /// Bresenham algorithm
   /// Source: https://gist.github.com/bert/1085538#file-plot_line-c
   @override
-  void drawLine(Vector2 a, Vector2 b, Color ca, Color cb) {
+  void drawLine(Vector3 a, Vector3 b, Color ca, Color cb) {
     var (x0, y0) = (a.x.toInt(), a.y.toInt());
     final (x1, y1) = (b.x.toInt(), b.y.toInt());
     final (dx, sx, dy, sy) = (
@@ -61,6 +66,7 @@ class ConsoleWindow extends BaseCanvas {
     var err = dx + dy;
     var e2 = 0;
     int cx = 0, cy = 0;
+    final length = a.xy.distanceTo(b.xy);
     while (true) {
       var symbol = cx == 0
           ? (cy == 0 ? ConsoleSymbol.dot : ConsoleSymbol.vertical)
@@ -69,7 +75,12 @@ class ConsoleWindow extends BaseCanvas {
               : (cx * cy > 0
                   ? ConsoleSymbol.swayLeft
                   : ConsoleSymbol.swayRight));
-      _colorBuffer.set(x0, y0, symbol: symbol.flag);
+      _colorBuffer.set(
+        x0,
+        y0,
+        Vector2(x0.toDouble(), y0.toDouble()).distanceTo(a.xy) / length,
+        symbol: symbol.flag,
+      );
       cx = cy = 0;
 
       if (x0 == x1 && y0 == y1) break;
@@ -83,6 +94,48 @@ class ConsoleWindow extends BaseCanvas {
         err += dx;
         y0 += sy;
         cy = sy;
+      }
+    }
+  }
+
+  @override
+  void drawTriangle(
+    Vector3 a,
+    Vector3 b,
+    Vector3 c,
+    Color ca,
+    Color cb,
+    Color cc,
+  ) {
+    // Calculate bounding box of triangle
+    final minXy = Vector2([a.x, b.x, c.x].min, [a.y, b.y, c.y].min);
+    final maxXy = Vector2([a.x, b.x, c.x].max, [a.y, b.y, c.y].max);
+    if (minXy.x >= displaySize.x ||
+        maxXy.x < 0 ||
+        minXy.y >= displaySize.y ||
+        maxXy.y < 0) {
+      return;
+    }
+    for (final v in [minXy, maxXy]) {
+      v.x = min(displaySize.x - 1, max(v.x, 0));
+      v.y = min(displaySize.y - 1, max(v.y, 0));
+    }
+
+    // Iterate over each pixel
+    for (var px = minXy.x; px <= maxXy.x; ++px) {
+      for (var py = minXy.y; py <= maxXy.y; ++py) {
+        final center = Vector2(px + 0.5, py + 0.5);
+        final w = edgeFunction(a.xy, b.xy, c.xy);
+        var (inside, wa, wb, wc) = isInsideTriangle(center, a.xy, b.xy, c.xy);
+        if (w.abs() > 0) {
+          wa /= w;
+          wb /= w;
+          wc /= w;
+        }
+        if (!inside) continue;
+        final z = 1 / (a.z * wa + b.z * wb + c.z * wc);
+        final col = ca * wa + cb * wb + cc * wc;
+        _colorBuffer.set(center.x.toInt(), center.y.toInt(), z, fg: col);
       }
     }
   }

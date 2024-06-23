@@ -34,11 +34,19 @@ class Rectangle extends Transformable implements Drawable {
     for (final v in _vertices) {
       v.color.setFrom(c);
     }
+    // TODO: remove
+    _vertices.last.color.setFrom(Colors.green);
+    _vertices[1].color.setFrom(Colors.blue);
   }
 
   @override
   void drawOn(BaseCanvas c, RenderState s) {
     s.transform.multiply(transform);
-    c.drawVertices(_vertices, PrimitiveType.lineLoop, s);
+    c.drawVertices(
+      _vertices,
+      PrimitiveType.triangle,
+      s,
+      ebo: [0, 1, 2, 0, 2, 3],
+    );
   }
 }
