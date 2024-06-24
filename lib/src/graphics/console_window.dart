@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/base_canvas.dart';
 import 'package:stayv2/src/graphics/color.dart';
+import 'package:stayv2/src/graphics/console/ansi.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:stayv2/src/graphics/edge_function.dart';
 import 'package:vector_math/vector_math.dart';
@@ -13,13 +14,21 @@ final _eps = 1e-7;
 /// Represents a 2D screen with pixels within a window
 class ConsoleWindow extends BaseCanvas {
   final _colorBuffer = ConsoleColorBuffer();
-  final _console = Console();
+  final _consoleStdoutBuffer = StringBuffer();
+  final _console = Console.scrolling();
+  var _needsCleanScreen = true;
 
   ConsoleWindow() {
     _console.hideCursor();
     onSizeChanged +
         (size) {
-          _colorBuffer.resize(size.x.toInt(), size.y.toInt());
+          _needsCleanScreen = true;
+          _colorBuffer.resize(size.x.floor(), size.y.floor());
+          camera.resizeToFit(
+            width: displaySize.x,
+            height: displaySize.y,
+            keepHeight: true,
+          );
         };
     startWatchSize(checkSizeInterval: 0.5);
   }
@@ -39,13 +48,23 @@ class ConsoleWindow extends BaseCanvas {
 
   @override
   display() {
-    super.display();
-    final changes = _colorBuffer.swap();
-    for (final (iw, ih, c, s) in changes) {
-      _console.cursorPosition = Coordinate(ih, iw);
-      _console.setBackgroundColor(c);
-      _console.write(s);
+    if (_needsCleanScreen) {
+      _needsCleanScreen = false;
+      _console.clearScreen();
     }
+    final changes = _colorBuffer.swap();
+    _consoleStdoutBuffer.clear();
+    for (final (iw, ih, c, s) in changes) {
+      _consoleStdoutBuffer.writeAll([
+        ansiCursorPosition(ih, iw),
+        c.ansiSetBackgroundColorSequence,
+        s,
+      ]);
+      // _console.cursorPosition = Coordinate(ih, iw);
+      // _console.setBackgroundColor(c);
+      // _console.write(s);
+    }
+    _console.write(_consoleStdoutBuffer);
   }
 
   @override
@@ -112,9 +131,9 @@ class ConsoleWindow extends BaseCanvas {
     // Calculate bounding box of triangle
     final minXy = Vector2([a.x, b.x, c.x].min, [a.y, b.y, c.y].min);
     final maxXy = Vector2([a.x, b.x, c.x].max, [a.y, b.y, c.y].max);
-    if (minXy.x >= displaySize.x ||
+    if (minXy.x >= displaySize.x - 1 ||
         maxXy.x < 0 ||
-        minXy.y >= displaySize.y ||
+        minXy.y >= displaySize.y - 1 ||
         maxXy.y < 0) {
       return;
     }

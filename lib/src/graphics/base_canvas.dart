@@ -35,16 +35,7 @@ abstract class BaseCanvas extends SizeCheck {
     Color cc,
   );
   void clear({Color color});
-
-  /// Call `super.display()` first to update camera aspect ratio
-  @mustCallSuper
-  void display() {
-    camera.resizeToFit(
-      keepHeight: true,
-      width: displaySize.x,
-      height: displaySize.y,
-    );
-  }
+  void display();
 
   void draw(Drawable d, {RenderState? st}) {
     d.drawOn(this, st ?? RenderState.identity());
