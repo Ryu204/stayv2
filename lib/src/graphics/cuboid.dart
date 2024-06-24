@@ -14,10 +14,13 @@ class Cuboid extends Transformable implements Drawable {
   final _size = Vector3.zero();
 
   /// Each pair is start and end point of a line
-  static final _ebo = [0, 1, 1, 2, 2, 3, 3, 0]
+  static final _ebo = [0, 1, 2, 0, 2, 3]
     // ignore: prefer_inlined_adds
-    ..addAll([0, 4, 1, 5, 2, 7, 3, 6])
-    ..addAll([4, 5, 5, 7, 7, 6, 6, 4]);
+    ..addAll([3, 2, 7, 3, 7, 6])
+    ..addAll([2, 1, 5, 2, 5, 7])
+    ..addAll([0, 4, 1, 1, 4, 5])
+    ..addAll([4, 7, 5, 6, 7, 4])
+    ..addAll([0, 3, 6, 0, 6, 4]);
 
   Cuboid({
     required double w,
@@ -52,11 +55,21 @@ class Cuboid extends Transformable implements Drawable {
     for (final v in _vertices) {
       v.color.setFrom(c);
     }
+    // TODO: remove
+    _vertices[0].color.setFrom(Colors.red);
+    _vertices[1].color.setFrom(Colors.red);
+    _vertices[2].color.setFrom(Colors.green);
+    _vertices[3].color.setFrom(Colors.green);
+
+    _vertices[4].color.setFrom(Colors.blue);
+    _vertices[5].color.setFrom(Colors.blue);
+    _vertices[6].color.setFrom(Colors.black);
+    _vertices[7].color.setFrom(Colors.black);
   }
 
   @override
   void drawOn(BaseCanvas c, RenderState s) {
     s.transform.multiply(transform);
-    c.drawVertices(_vertices, PrimitiveType.line, s, ebo: _ebo);
+    c.drawVertices(_vertices, PrimitiveType.triangle, s, ebo: _ebo);
   }
 }

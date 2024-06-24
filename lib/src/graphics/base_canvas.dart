@@ -1,4 +1,3 @@
-import 'package:meta/meta.dart';
 import 'package:stayv2/src/graphics/camera.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/drawable.dart';
