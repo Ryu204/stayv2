@@ -105,12 +105,14 @@ class ConsoleColorBuffer {
     for (final i in _trueColor) {
       i.bgr.setFrom(col);
       i.symbols = 0;
+      i.zBuffer = double.infinity;
     }
   }
 
   void set(int iw, int ih, double zBuf, {Color? fg, int symbol = 0}) {
     final cell = _trueColor[ih * _w + iw];
     if (zBuf > cell.zBuffer) return;
+    cell.zBuffer = zBuf;
     if (fg != null) cell.bgr.setFrom(fg);
     cell.symbols |= symbol;
   }

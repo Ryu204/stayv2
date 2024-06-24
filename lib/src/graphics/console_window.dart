@@ -8,6 +8,8 @@ import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:stayv2/src/graphics/edge_function.dart';
 import 'package:vector_math/vector_math.dart';
 
+final _eps = 1e-7;
+
 /// Represents a 2D screen with pixels within a window
 class ConsoleWindow extends BaseCanvas {
   final _colorBuffer = ConsoleColorBuffer();
@@ -120,6 +122,10 @@ class ConsoleWindow extends BaseCanvas {
       v.x = min(displaySize.x - 1, max(v.x, 0));
       v.y = min(displaySize.y - 1, max(v.y, 0));
     }
+    minXy.x = minXy.x.floorToDouble();
+    minXy.y = minXy.y.floorToDouble();
+    maxXy.x = maxXy.x.ceilToDouble();
+    maxXy.y = maxXy.y.ceilToDouble();
 
     // Iterate over each pixel
     for (var px = minXy.x; px <= maxXy.x; ++px) {
@@ -133,9 +139,16 @@ class ConsoleWindow extends BaseCanvas {
           wc /= w;
         }
         if (!inside) continue;
-        final z = 1 / (a.z * wa + b.z * wb + c.z * wc);
+        final onePerZ = wa / (a.z.abs() < _eps ? _eps : a.z) +
+            wb / (b.z.abs() < _eps ? _eps : b.z) +
+            wc / (c.z.abs() < _eps ? _eps : c.z);
         final col = ca * wa + cb * wb + cc * wc;
-        _colorBuffer.set(center.x.toInt(), center.y.toInt(), z, fg: col);
+        _colorBuffer.set(
+          center.x.toInt(),
+          center.y.toInt(),
+          1 / (onePerZ.abs() < _eps ? _eps : onePerZ),
+          fg: col,
+        );
       }
     }
   }
