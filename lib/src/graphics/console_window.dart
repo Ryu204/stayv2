@@ -137,10 +137,6 @@ class ConsoleWindow extends BaseCanvas {
         maxXy.y < 0) {
       return;
     }
-    for (final v in [minXy, maxXy]) {
-      v.x = min(displaySize.x - 1, max(v.x, 0));
-      v.y = min(displaySize.y - 1, max(v.y, 0));
-    }
     minXy.x = minXy.x.floorToDouble();
     minXy.y = minXy.y.floorToDouble();
     maxXy.x = maxXy.x.ceilToDouble();
@@ -152,20 +148,17 @@ class ConsoleWindow extends BaseCanvas {
         final center = Vector2(px + 0.5, py + 0.5);
         final w = edgeFunction(a.xy, b.xy, c.xy);
         var (inside, wa, wb, wc) = isInsideTriangle(center, a.xy, b.xy, c.xy);
-        if (w.abs() > 0) {
+        if (w.abs() > _eps) {
           wa /= w;
           wb /= w;
           wc /= w;
         }
         if (!inside) continue;
-        final onePerZ = wa / (a.z.abs() < _eps ? _eps : a.z) +
-            wb / (b.z.abs() < _eps ? _eps : b.z) +
-            wc / (c.z.abs() < _eps ? _eps : c.z);
         final col = ca * wa + cb * wb + cc * wc;
         _colorBuffer.set(
-          center.x.toInt(),
-          center.y.toInt(),
-          1 / (onePerZ.abs() < _eps ? _eps : onePerZ),
+          center.x.floor(),
+          center.y.floor(),
+          a.z * wa + b.z * wb + c.z * wc,
           fg: col,
         );
       }

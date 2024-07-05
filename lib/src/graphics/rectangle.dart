@@ -46,7 +46,7 @@ class Rectangle extends Transformable implements Drawable {
       _vertices,
       PrimitiveType.triangle,
       s,
-      ebo: [0, 1, 2, 0, 2, 3],
+      ebo: [0, 2, 1, 0, 3, 2],
     );
   }
 }

@@ -17,22 +17,19 @@ double edgeFunction(Vector2 p, Vector2 begin, Vector2 end) {
 /// [a][b][c] is expected to be in CCW order
 (bool, double, double, double) isInsideTriangle(
     Vector2 p, Vector2 a, Vector2 b, Vector2 c) {
-  final backfaceCulling = false;
-
   final (ra, rb, rc) = (
     edgeFunction(p, b, c),
     edgeFunction(p, c, a),
     edgeFunction(p, a, b),
   );
   final (ea, eb, ec) = (c - b, a - c, b - a);
-  final isBackface = ra > 0 && rb > 0 && rc > 0;
 
   if ((ra == 0 && !_isTopLeftEdge(ea)) ||
       (rb == 0 && !_isTopLeftEdge(eb)) ||
       (rc == 0 && !_isTopLeftEdge(ec))) {
     return (false, ra, rb, rc);
   }
-  if ((ra <= 0 && rb <= 0 && rc <= 0) || (isBackface && !backfaceCulling)) {
+  if ((ra >= 0 && rb >= 0 && rc >= 0) || (ra < 0 && rb < 0 && rc < 0)) {
     return (true, ra, rb, rc);
   }
   return (false, ra, rb, rc);
