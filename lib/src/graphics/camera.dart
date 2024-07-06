@@ -73,9 +73,9 @@ class Camera extends Transformable {
     required Vector3 ndc,
   }) {
     return Vector3(
-      width * ndc.x / 2 + left + width / 2,
-      height * ndc.y / 2 + top + height / 2,
-      (_far - _near) * ndc.z / 2 + (_far + _near) / 2,
+      width * (-ndc.x / 2) + left + width / 2,
+      height * (-ndc.y / 2) + top + height / 2,
+      -ndc.z,
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/console/ansi.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:stayv2/src/graphics/edge_function.dart';
+import 'package:stayv2/src/utils/more_math.dart';
 import 'package:vector_math/vector_math.dart';
 
 final _eps = 1e-7;
@@ -58,9 +59,6 @@ class ConsoleWindow extends BaseCanvas {
         c.ansiSetBackgroundColorSequence,
         s,
       ]);
-      // _console.cursorPosition = Coordinate(ih, iw);
-      // _console.setBackgroundColor(c);
-      // _console.write(s);
     }
     _console.write(_consoleStdoutBuffer);
   }
@@ -94,10 +92,13 @@ class ConsoleWindow extends BaseCanvas {
               : (cx * cy > 0
                   ? ConsoleSymbol.swayLeft
                   : ConsoleSymbol.swayRight));
+      final dt =
+          Vector2(x0.toDouble(), y0.toDouble()).distanceTo(a.xy) / length;
       _colorBuffer.set(
         x0,
         y0,
-        Vector2(x0.toDouble(), y0.toDouble()).distanceTo(a.xy) / length,
+        lerp(a.z, b.z, dt),
+        fg: lerpV4(ca, cb, dt),
         symbol: symbol.flag,
       );
       cx = cy = 0;
@@ -135,10 +136,10 @@ class ConsoleWindow extends BaseCanvas {
         maxXy.y < 0) {
       return;
     }
-    minXy.x = minXy.x.floorToDouble();
-    minXy.y = minXy.y.floorToDouble();
-    maxXy.x = maxXy.x.ceilToDouble();
-    maxXy.y = maxXy.y.ceilToDouble();
+    minXy.x = clamp(minXy.x.floorToDouble(), 0, displaySize.x - 1);
+    minXy.y = clamp(minXy.y.floorToDouble(), 0, displaySize.y - 1);
+    maxXy.x = clamp(maxXy.x.ceilToDouble(), 0, displaySize.x - 1);
+    maxXy.y = clamp(maxXy.y.ceilToDouble(), 0, displaySize.y - 1);
 
     final w = edgeFunction(a.xy, b.xy, c.xy);
     if (w.abs() < _eps) {

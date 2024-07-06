@@ -109,12 +109,16 @@ class ConsoleColorBuffer {
     }
   }
 
+  /// If [iw] or [ih] or [zBuf] is not inside the screen, nothing happens
   void set(int iw, int ih, double zBuf, {Color? fg, int symbol = 0}) {
+    if (iw < 0 || ih < 0 || iw >= _w || ih >= _h || zBuf < -1 || zBuf > 1) {
+      return;
+    }
     final cell = _trueColor[ih * _w + iw];
     if (zBuf < cell.zBuffer) return;
     cell.zBuffer = zBuf;
     if (fg != null) cell.bgr.setFrom(fg);
-    cell.symbols |= symbol;
+    cell.symbols = symbol;
   }
 
   /// Returns list of pixel needs to be updated after comparing to the last swap call.

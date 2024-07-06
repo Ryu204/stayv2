@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:stayv2/src/graphics/camera.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/drawable.dart';
@@ -8,7 +10,14 @@ import 'package:vector_math/vector_math.dart';
 export 'package:stayv2/src/graphics/render_state.dart';
 
 abstract class BaseCanvas extends SizeCheck {
-  final camera = Camera.ortho(width: 10, height: 10);
+  final camera = Camera.ortho(
+    width: 10,
+    height: 10,
+    far: 100,
+    near: 0.01,
+  )
+    ..setRotation(pi, axis: Vector3(0, 1, 0))
+    ..move(Vector3(0, 0, -1));
 
   /// Draw a point in screen coordinate [x],[y]
   ///
@@ -52,8 +61,12 @@ abstract class BaseCanvas extends SizeCheck {
     final transformed = points.map((v) {
       final ndc = mvp.transformed3(v.position);
       final winSpace = camera.viewportTransform(
-          top: top, left: left, width: width, height: height, ndc: ndc);
-      winSpace.y = height - 1 - winSpace.y;
+        top: top,
+        left: left,
+        width: width,
+        height: height,
+        ndc: ndc,
+      );
       return winSpace;
     }).toList();
 

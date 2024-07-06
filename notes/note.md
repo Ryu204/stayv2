@@ -18,4 +18,28 @@ y+
 
 ## Camera
 
-The camera looks at its local `z-` axis
+The camera looks at its local `z-` axis. To be more specific:
+
+Initially, the camera's coordinate looks like this:
+
+```
+y+  z+
+|  /
+| /
+|_____x+
+```
+
+And its visible area has this coordinate:
+
+```
+    y+  z-
+    |  /
+    | /
+    |_____x-
+   /
+  /
+ /
+z+
+```
+
+`z+` is the visible part.
