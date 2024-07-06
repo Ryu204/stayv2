@@ -15,3 +15,7 @@ y+
 | /
 |____________________________> x+
 ```
+
+## Camera
+
+The camera looks at its local `z-` axis

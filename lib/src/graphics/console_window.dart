@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/base_canvas.dart';
@@ -142,17 +140,18 @@ class ConsoleWindow extends BaseCanvas {
     maxXy.x = maxXy.x.ceilToDouble();
     maxXy.y = maxXy.y.ceilToDouble();
 
+    final w = edgeFunction(a.xy, b.xy, c.xy);
+    if (w.abs() < _eps) {
+      return;
+    }
     // Iterate over each pixel
     for (var px = minXy.x; px <= maxXy.x; ++px) {
       for (var py = minXy.y; py <= maxXy.y; ++py) {
         final center = Vector2(px + 0.5, py + 0.5);
-        final w = edgeFunction(a.xy, b.xy, c.xy);
         var (inside, wa, wb, wc) = isInsideTriangle(center, a.xy, b.xy, c.xy);
-        if (w.abs() > _eps) {
-          wa /= w;
-          wb /= w;
-          wc /= w;
-        }
+        wa /= w;
+        wb /= w;
+        wc /= w;
         if (!inside) continue;
         final col = ca * wa + cb * wb + cc * wc;
         _colorBuffer.set(
