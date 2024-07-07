@@ -1,24 +1,25 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/base_canvas.dart';
+import 'package:stayv2/src/graphics/camera.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/console/ansi.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:stayv2/src/graphics/edge_function.dart';
+import 'package:stayv2/src/utils/more_math.dart';
 import 'package:vector_math/vector_math.dart';
 
 final _eps = 1e-7;
 
 /// Represents a 2D screen with pixels within a window
 class ConsoleWindow extends BaseCanvas {
-  final _colorBuffer = ConsoleColorBuffer();
+  late ConsoleColorBuffer _colorBuffer;
   final _consoleStdoutBuffer = StringBuffer();
   final _console = Console.scrolling();
   var _needsCleanScreen = true;
 
   ConsoleWindow() {
+    _colorBuffer = ConsoleColorBuffer(near: camera.near, far: camera.far);
     _console.hideCursor();
     onSizeChanged +
         (size) {
@@ -60,9 +61,6 @@ class ConsoleWindow extends BaseCanvas {
         c.ansiSetBackgroundColorSequence,
         s,
       ]);
-      // _console.cursorPosition = Coordinate(ih, iw);
-      // _console.setBackgroundColor(c);
-      // _console.write(s);
     }
     _console.write(_consoleStdoutBuffer);
   }
@@ -75,7 +73,7 @@ class ConsoleWindow extends BaseCanvas {
   /// Bresenham algorithm
   /// Source: https://gist.github.com/bert/1085538#file-plot_line-c
   @override
-  void drawLine(Vector3 a, Vector3 b, Color ca, Color cb) {
+  void drawLine(Vector4 a, Vector4 b, Color ca, Color cb) {
     var (x0, y0) = (a.x.toInt(), a.y.toInt());
     final (x1, y1) = (b.x.toInt(), b.y.toInt());
     final (dx, sx, dy, sy) = (
@@ -96,10 +94,17 @@ class ConsoleWindow extends BaseCanvas {
               : (cx * cy > 0
                   ? ConsoleSymbol.swayLeft
                   : ConsoleSymbol.swayRight));
+      final dt =
+          Vector2(x0.toDouble(), y0.toDouble()).distanceTo(a.xy) / length;
       _colorBuffer.set(
         x0,
         y0,
-        Vector2(x0.toDouble(), y0.toDouble()).distanceTo(a.xy) / length,
+        switch (camera.type) {
+          CameraType.ortho => lerp(a.z, b.z, dt),
+          CameraType.perspective =>
+            _perspectiveZCalc(a.w, b.w, null, 1 - dt, dt, null)
+        },
+        fg: lerpV4(ca, cb, dt),
         symbol: symbol.flag,
       );
       cx = cy = 0;
@@ -121,9 +126,9 @@ class ConsoleWindow extends BaseCanvas {
 
   @override
   void drawTriangle(
-    Vector3 a,
-    Vector3 b,
-    Vector3 c,
+    Vector4 a,
+    Vector4 b,
+    Vector4 c,
     Color ca,
     Color cb,
     Color cc,
@@ -137,35 +142,33 @@ class ConsoleWindow extends BaseCanvas {
         maxXy.y < 0) {
       return;
     }
-    for (final v in [minXy, maxXy]) {
-      v.x = min(displaySize.x - 1, max(v.x, 0));
-      v.y = min(displaySize.y - 1, max(v.y, 0));
-    }
-    minXy.x = minXy.x.floorToDouble();
-    minXy.y = minXy.y.floorToDouble();
-    maxXy.x = maxXy.x.ceilToDouble();
-    maxXy.y = maxXy.y.ceilToDouble();
+    minXy.x = clamp(minXy.x.floorToDouble(), 0, displaySize.x - 1);
+    minXy.y = clamp(minXy.y.floorToDouble(), 0, displaySize.y - 1);
+    maxXy.x = clamp(maxXy.x.ceilToDouble(), 0, displaySize.x - 1);
+    maxXy.y = clamp(maxXy.y.ceilToDouble(), 0, displaySize.y - 1);
 
+    final w = edgeFunction(a.xy, b.xy, c.xy);
+    if (w.abs() < _eps) {
+      return;
+    }
     // Iterate over each pixel
     for (var px = minXy.x; px <= maxXy.x; ++px) {
       for (var py = minXy.y; py <= maxXy.y; ++py) {
         final center = Vector2(px + 0.5, py + 0.5);
-        final w = edgeFunction(a.xy, b.xy, c.xy);
         var (inside, wa, wb, wc) = isInsideTriangle(center, a.xy, b.xy, c.xy);
-        if (w.abs() > 0) {
-          wa /= w;
-          wb /= w;
-          wc /= w;
-        }
+        wa /= w;
+        wb /= w;
+        wc /= w;
         if (!inside) continue;
-        final onePerZ = wa / (a.z.abs() < _eps ? _eps : a.z) +
-            wb / (b.z.abs() < _eps ? _eps : b.z) +
-            wc / (c.z.abs() < _eps ? _eps : c.z);
         final col = ca * wa + cb * wb + cc * wc;
+        final z = switch (camera.type) {
+          CameraType.ortho => a.z * wa + b.z * wb + c.z * wc,
+          CameraType.perspective => _perspectiveZCalc(a.w, b.w, c.w, wa, wb, wc)
+        };
         _colorBuffer.set(
-          center.x.toInt(),
-          center.y.toInt(),
-          1 / (onePerZ.abs() < _eps ? _eps : onePerZ),
+          center.x.floor(),
+          center.y.floor(),
+          z,
           fg: col,
         );
       }
@@ -176,5 +179,26 @@ class ConsoleWindow extends BaseCanvas {
   void shutdown() {
     super.shutdown();
     _console.showCursor();
+  }
+
+  double _perspectiveZCalc(
+    double aw,
+    double bw,
+    double? cw,
+    double ra,
+    double rb,
+    double? rc,
+  ) {
+    if (cw == null) {
+      aw = 1 / (aw.abs() < _eps ? _eps : aw);
+      bw = 1 / (bw.abs() < _eps ? _eps : bw);
+      final onePerZ = aw * ra + bw * rb;
+      return 1 / (onePerZ.abs() < _eps ? _eps : onePerZ);
+    }
+    aw = 1 / (aw.abs() < _eps ? _eps : aw);
+    bw = 1 / (bw.abs() < _eps ? _eps : bw);
+    cw = 1 / (cw.abs() < _eps ? _eps : cw);
+    final onePerZ = aw * ra + bw * rb + cw * rc!;
+    return 1 / (onePerZ.abs() < _eps ? _eps : onePerZ);
   }
 }

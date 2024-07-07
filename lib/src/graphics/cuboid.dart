@@ -13,14 +13,13 @@ class Cuboid extends Transformable implements Drawable {
   );
   final _size = Vector3.zero();
 
-  /// Each pair is start and end point of a line
-  static final _ebo = [0, 1, 2, 0, 2, 3]
+  static final _ebo = [0, 2, 1, 0, 3, 2]
     // ignore: prefer_inlined_adds
-    ..addAll([3, 2, 7, 3, 7, 6])
-    ..addAll([2, 1, 5, 2, 5, 7])
-    ..addAll([0, 4, 1, 1, 4, 5])
-    ..addAll([4, 7, 5, 6, 7, 4])
-    ..addAll([0, 3, 6, 0, 6, 4]);
+    ..addAll([3, 7, 2, 3, 6, 7])
+    ..addAll([2, 5, 1, 2, 7, 5])
+    ..addAll([0, 1, 4, 1, 5, 4])
+    ..addAll([4, 5, 7, 4, 7, 6])
+    ..addAll([0, 6, 3, 0, 4, 6]);
 
   Cuboid({
     required double w,
@@ -61,10 +60,10 @@ class Cuboid extends Transformable implements Drawable {
     _vertices[2].color.setFrom(Colors.green);
     _vertices[3].color.setFrom(Colors.green);
 
-    _vertices[4].color.setFrom(Colors.blue);
-    _vertices[5].color.setFrom(Colors.blue);
-    _vertices[6].color.setFrom(Colors.black);
-    _vertices[7].color.setFrom(Colors.black);
+    _vertices[4].color.setFrom(Colors.red);
+    _vertices[5].color.setFrom(Colors.red);
+    _vertices[6].color.setFrom(Colors.green);
+    _vertices[7].color.setFrom(Colors.green);
   }
 
   @override
