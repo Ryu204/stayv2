@@ -60,8 +60,8 @@ class Cuboid extends Transformable implements Drawable {
     _vertices[2].color.setFrom(Colors.green);
     _vertices[3].color.setFrom(Colors.green);
 
-    _vertices[4].color.setFrom(Colors.blue);
-    _vertices[5].color.setFrom(Colors.blue);
+    _vertices[4].color.setFrom(Colors.red);
+    _vertices[5].color.setFrom(Colors.red);
     _vertices[6].color.setFrom(Colors.green);
     _vertices[7].color.setFrom(Colors.green);
   }

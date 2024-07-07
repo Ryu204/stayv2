@@ -10,38 +10,23 @@ import 'package:vector_math/vector_math.dart';
 export 'package:stayv2/src/graphics/render_state.dart';
 
 abstract class BaseCanvas extends SizeCheck {
-  final camera = Camera.ortho(
+  final camera = Camera.perspective(
     width: 10,
     height: 10,
-    far: 100,
-    near: 0.01,
+    fovYRadians: pi / 3,
+    far: 1000,
+    near: 3,
   )
     ..setRotation(pi, axis: Vector3(0, 1, 0))
-    ..move(Vector3(0, 0, -1));
+    ..move(Vector3(0, 0, -6));
+  // final camera = Camera.ortho(width: 10, height: 10, far: 100)
+  //   ..setRotation(pi, axis: Vector3(0, 1, 0))
+  //   ..move(Vector3(0, 0, -1));
 
-  /// Draw a point in screen coordinate [x],[y]
-  ///
-  /// [x] and [y] is guranteed to be inside visible area of screen
-  ///
-  /// User should not call this method
   void drawPoint(Vector3 pos, Color c);
-
-  /// Draw a line in screen coordinate connecting 2 point [a],[b]
-  ///
-  /// User should not call this method
-  void drawLine(Vector3 a, Vector3 b, Color ca, Color cb);
-
-  /// Draw triangle [a][b][c]. Counter clockwise order is assumed
-  ///
-  /// User should not call this method
+  void drawLine(Vector4 a, Vector4 b, Color ca, Color cb);
   void drawTriangle(
-    Vector3 a,
-    Vector3 b,
-    Vector3 c,
-    Color ca,
-    Color cb,
-    Color cc,
-  );
+      Vector4 a, Vector4 b, Vector4 c, Color ca, Color cb, Color cc);
   void clear({Color color});
   void display();
 
@@ -59,20 +44,24 @@ abstract class BaseCanvas extends SizeCheck {
     final (top, left, width, height) = (0.0, 0.0, displaySize.x, displaySize.y);
 
     final transformed = points.map((v) {
-      final ndc = mvp.transformed3(v.position);
+      final position = Vector4(v.position.x, v.position.y, v.position.z, 1);
+      mvp.transform(position);
+      position.x /= position.w;
+      position.y /= position.w;
+      position.z /= position.w;
       final winSpace = camera.viewportTransform(
         top: top,
         left: left,
         width: width,
         height: height,
-        ndc: ndc,
+        ndc: position,
       );
       return winSpace;
     }).toList();
 
     if (type == PrimitiveType.point) {
       for (final (i, v) in transformed.indexed) {
-        drawPoint(v, points[i].color);
+        drawPoint(v.xyz, points[i].color);
       }
     } else if (type == PrimitiveType.lineLoop && ebo == null) {
       final n = transformed.length;

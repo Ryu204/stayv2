@@ -10,11 +10,11 @@ enum CameraType {
 
 class Camera extends Transformable {
   final _projMatrix = Matrix4.identity();
-  var _type = CameraType.ortho;
+  final CameraType _type;
   double _width;
   double _height;
-  double _far;
-  double _near;
+  final double _far;
+  final double _near;
   double? _fovYRadians;
 
   Camera.ortho({
@@ -25,8 +25,8 @@ class Camera extends Transformable {
   })  : _near = near,
         _far = far,
         _height = height,
-        _width = width {
-    _type = CameraType.ortho;
+        _width = width,
+        _type = CameraType.ortho {
     _updateProjMatrix();
   }
 
@@ -40,9 +40,21 @@ class Camera extends Transformable {
         _far = far,
         _height = height,
         _width = width,
-        _fovYRadians = fovYRadians {
-    _type = CameraType.perspective;
+        _fovYRadians = fovYRadians,
+        _type = CameraType.perspective {
     _updateProjMatrix();
+  }
+
+  CameraType get type {
+    return _type;
+  }
+
+  double get near {
+    return _near;
+  }
+
+  double get far {
+    return _far;
   }
 
   void resizeToFit({
@@ -65,17 +77,18 @@ class Camera extends Transformable {
 
   /// Viewport transform calculation in
   /// `https://www.khronos.org/opengl/wiki/Vertex_Post-Processing#Viewport_transform`
-  Vector3 viewportTransform({
+  Vector4 viewportTransform({
     double top = 0,
     double left = 0,
     required double width,
     required double height,
-    required Vector3 ndc,
+    required Vector4 ndc,
   }) {
-    return Vector3(
+    return Vector4(
       width * (-ndc.x / 2) + left + width / 2,
       height * (-ndc.y / 2) + top + height / 2,
-      -ndc.z,
+      (_far - _near) * ndc.z / 2 + (_far + _near) / 2,
+      ndc.w,
     );
   }
 
