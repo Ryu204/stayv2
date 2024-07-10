@@ -2,58 +2,6 @@ import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:vector_math/vector_math.dart';
 
-enum ConsoleSymbol {
-  vertical(1),
-  horizontal(2),
-  swayLeft(4),
-  swayRight(8),
-  dot(16);
-
-  final int flag;
-
-  const ConsoleSymbol(this.flag);
-
-  static String get(int c) {
-    return switch (c) {
-      1 => '|',
-      2 => '-',
-      3 => '+',
-      4 => '\\',
-      5 => '.',
-      6 => '.',
-      7 => '.',
-      8 => '/',
-      9 => '.',
-      10 => '.',
-      11 => '.',
-      12 => 'X',
-      13 => '.',
-      14 => '.',
-      15 => '.',
-      16 => '*',
-      > 16 && < 32 => get(c - 16),
-      _ => ' '
-    };
-  }
-}
-
-class ConsoleCell {
-  ConsoleColor bgr;
-  int symbols;
-
-  ConsoleCell(this.bgr, this.symbols);
-
-  @override
-  bool operator ==(Object other) {
-    if (other is ConsoleCell == false) return false;
-    final cell = other as ConsoleCell;
-    return symbols == cell.symbols && bgr == cell.bgr;
-  }
-
-  @override
-  int get hashCode => Object.hash(bgr, symbols);
-}
-
 class TrueColorCell {
   Color bgr;
   int symbols;
@@ -72,7 +20,7 @@ class ConsoleColorBuffer {
   double far = 100;
   final _trueColor = <TrueColorCell>[];
   final _displayDoubleBuffer =
-      List.generate(2, (_) => <ConsoleCell>[], growable: false);
+      List.generate(2, (_) => <ConsoleColor>[], growable: false);
   var _activeDisplayBuffer = 0;
   var _needRefresh = true;
 
@@ -97,7 +45,7 @@ class ConsoleColorBuffer {
       if (buf.length < count) {
         buf.addAll(List.generate(
           count - buf.length,
-          (_) => ConsoleCell(ConsoleColor.black, 0),
+          (_) => ConsoleColor.black,
         ));
       } else {
         buf.length = count;
@@ -114,29 +62,26 @@ class ConsoleColorBuffer {
   }
 
   /// If [iw] or [ih] or [zBuf] is not inside the screen, nothing happens
-  void set(int iw, int ih, double zBuf, {Color? fg, int symbol = 0}) {
+  void set(int iw, int ih, double zBuf, Color bgr) {
     if (iw < 0 || ih < 0 || iw >= _w || ih >= _h || zBuf < near || zBuf > far) {
       return;
     }
     final cell = _trueColor[ih * _w + iw];
     if (zBuf > cell.zBuffer) return;
     cell.zBuffer = zBuf;
-    if (fg != null) cell.bgr.setFrom(fg);
-    cell.symbols = symbol;
+    cell.bgr.setFrom(bgr);
   }
 
   /// Returns list of pixel needs to be updated after comparing to the last swap call.
-  List<(int iw, int ih, ConsoleColor c, String s)> swap() {
-    final res = <(int iw, int ih, ConsoleColor c, String s)>[];
+  List<(int iw, int ih, ConsoleColor c)> swap() {
+    final res = <(int iw, int ih, ConsoleColor c)>[];
     for (final (i, c) in _trueColor.indexed) {
-      final displayCell = _displayDoubleBuffer[_activeDisplayBuffer][i];
       final newColor = closestColorMatch(c.bgr);
-      displayCell.bgr = newColor;
-      displayCell.symbols = c.symbols;
-      final needsUpdate =
-          displayCell != _displayDoubleBuffer[1 - _activeDisplayBuffer][i];
+      _displayDoubleBuffer[_activeDisplayBuffer][i] = newColor;
+      final needsUpdate = newColor.index !=
+          _displayDoubleBuffer[1 - _activeDisplayBuffer][i].index;
       if (needsUpdate || _needRefresh) {
-        res.add((i % _w, i ~/ _w, newColor, ConsoleSymbol.get(c.symbols)));
+        res.add((i % _w, i ~/ _w, newColor));
       }
     }
     _activeDisplayBuffer = 1 - _activeDisplayBuffer;

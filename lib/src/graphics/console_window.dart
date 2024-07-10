@@ -60,11 +60,11 @@ class ConsoleWindow extends BaseCanvas {
     }
     final changes = _colorBuffer.swap();
     _consoleStdoutBuffer.clear();
-    for (final (iw, ih, c, s) in changes) {
+    for (final (iw, ih, c) in changes) {
       _consoleStdoutBuffer.writeAll([
         ansiCursorPosition(ih, iw),
         c.ansiSetBackgroundColorSequence,
-        s,
+        ' ',
       ]);
     }
     _console.write(_consoleStdoutBuffer);
@@ -72,9 +72,12 @@ class ConsoleWindow extends BaseCanvas {
 
   @override
   void drawPoint(Vector4 pos, Color c) {
-    _colorBuffer.set(pos.x.toInt(), pos.y.toInt(),
-        camera.type == CameraType.perspective ? pos.w : pos.z,
-        fg: c);
+    _colorBuffer.set(
+      pos.x.toInt(),
+      pos.y.toInt(),
+      camera.type == CameraType.perspective ? pos.w : pos.z,
+      c,
+    );
   }
 
   /// Bresenham algorithm
@@ -104,15 +107,7 @@ class ConsoleWindow extends BaseCanvas {
     );
     var err = dx + dy;
     var e2 = 0;
-    int cx = 0, cy = 0;
     while (true) {
-      var symbol = cx == 0
-          ? (cy == 0 ? ConsoleSymbol.dot : ConsoleSymbol.vertical)
-          : (cy == 0
-              ? ConsoleSymbol.horizontal
-              : (cx * cy > 0
-                  ? ConsoleSymbol.swayLeft
-                  : ConsoleSymbol.swayRight));
       final dt =
           sqrt((x0 - a.x) * (x0 - a.x) + (y0 - a.y) * (y0 - a.y)) / length_;
       var (aa, ab) = ((1 - dt) / a.w, dt / b.w);
@@ -125,22 +120,18 @@ class ConsoleWindow extends BaseCanvas {
         camera.type == CameraType.perspective
             ? a.w * aa + b.w * ab
             : a.z * aa + b.z * ab,
-        fg: ca * aa + cb * ab,
-        symbol: symbol.flag,
+        ca * aa + cb * ab,
       );
-      cx = cy = 0;
 
       if (x0 == x1 && y0 == y1) break;
       e2 = 2 * err;
       if (e2 >= dy) {
         err += dy;
         x0 += sx;
-        cx = sx;
       }
       if (e2 <= dx) {
         err += dx;
         y0 += sy;
-        cy = sy;
       }
     }
   }
@@ -195,7 +186,7 @@ class ConsoleWindow extends BaseCanvas {
           center.x.floor(),
           center.y.floor(),
           z,
-          fg: col,
+          col,
         );
       }
     }
