@@ -23,7 +23,7 @@ abstract class BaseCanvas extends SizeCheck {
   //   ..setRotation(pi, axis: Vector3(0, 1, 0))
   //   ..move(Vector3(0, 0, -1));
 
-  void drawPoint(Vector3 pos, Color c);
+  void drawPoint(Vector4 pos, Color c);
   void drawLine(Vector4 a, Vector4 b, Color ca, Color cb);
   void drawTriangle(
       Vector4 a, Vector4 b, Vector4 c, Color ca, Color cb, Color cc);
@@ -61,7 +61,7 @@ abstract class BaseCanvas extends SizeCheck {
 
     if (type == PrimitiveType.point) {
       for (final (i, v) in transformed.indexed) {
-        drawPoint(v.xyz, points[i].color);
+        drawPoint(v, points[i].color);
       }
     } else if (type == PrimitiveType.lineLoop && ebo == null) {
       final n = transformed.length;
