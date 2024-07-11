@@ -67,7 +67,7 @@ class Application {
   // TODO: remove
   Rectangle rect = Rectangle(w: 1, h: 10)..move(Vector3(3, 1, 0));
   Rectangle rect2 = Rectangle(w: 1, h: 3)..move(Vector3(2, 2, 0));
-  Cuboid cube = Cuboid(w: 25, h: 2, d: 1.5)..move(Vector3(-1, -1, 3));
+  Cuboid cube = Cuboid(w: 2, h: 2, d: 25)..move(Vector3(-1, -1, 3));
   final randomAxis = Vector3(1, 1, 0);
 
   void _render(double t) {
@@ -84,7 +84,7 @@ class Application {
         Vertex(Vector3(-1, -1, 3), Colors.black),
         Vertex(randomAxis + Vector3(-1, -1, 3), Colors.white)
       ],
-      PrimitiveType.lineLoop,
+      PrimitiveType.line,
       RenderState.identity(),
     );
     _window.draw(rect2);

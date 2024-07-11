@@ -69,6 +69,32 @@ class Cuboid extends Transformable implements Drawable {
   @override
   void drawOn(BaseCanvas c, RenderState s) {
     s.transform.multiply(transform);
-    c.drawVertices(_vertices, PrimitiveType.triangle, s, ebo: _ebo);
+    // c.drawVertices(_vertices, PrimitiveType.triangle, s, ebo: _ebo);
+    c.drawVertices(_vertices, PrimitiveType.line, s, ebo: [
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      0,
+      4,
+      5,
+      5,
+      7,
+      7,
+      6,
+      6,
+      4,
+      0,
+      4,
+      1,
+      5,
+      2,
+      7,
+      3,
+      6
+    ]);
   }
 }

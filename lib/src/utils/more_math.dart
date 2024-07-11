@@ -13,3 +13,5 @@ double lerp<T extends num>(T start, T end, double dt) {
 Vector4 lerpV4(Vector4 start, Vector4 end, double dt) {
   return start * (1 - dt) + end * dt;
 }
+
+final epsilon = 1e-7;
