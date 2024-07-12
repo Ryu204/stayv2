@@ -97,6 +97,63 @@ abstract class BaseCanvas extends SizeCheck {
             i += 2;
           }
           break;
+        case PrimitiveType.triangle:
+          for (var i = 0; i + 2 < ebo_.length;) {
+            final isAddedTrig =
+                ebo_[i] < 0 || ebo_[i + 1] < 0 || ebo_[i + 2] < 0;
+            if (isAddedTrig) {
+              i += 3;
+              continue;
+            }
+            final (tfa, tfb, tfc, a, b, c) = (
+              homoCoords[ebo_[i]],
+              homoCoords[ebo_[i + 1]],
+              homoCoords[ebo_[i + 2]],
+              points[ebo_[i]],
+              points[ebo_[i + 1]],
+              points[ebo_[i + 2]],
+            );
+            final (shouldDraw, newVertices) = triangleClip(tfa, tfb, tfc);
+            if (!shouldDraw) {
+              ebo_.removeRange(i, i + 3);
+              continue;
+            }
+            assert(newVertices != null && newVertices.length >= 3);
+            final notClipped = newVertices!.length == 3 &&
+                newVertices[0].x > 1 - epsilon &&
+                newVertices[1].y > 1 - epsilon &&
+                newVertices[2].z > 1 - epsilon;
+            if (notClipped) {
+              i += 3;
+              continue;
+            }
+            ebo_.removeRange(i, i + 3);
+
+            final firstPointEboId = -addedHomoCoords.length - 1;
+            for (final newV in newVertices) {
+              addedVertices.add(Vertex(
+                Vector3.zero(),
+                linearCombV4(
+                  [a.color, b.color, c.color],
+                  [newV.x, newV.y, newV.z],
+                ),
+              ));
+              addedHomoCoords.add(linearCombV4(
+                [tfa, tfb, tfc],
+                [newV.x, newV.y, newV.z],
+              ));
+            }
+            for (var lastPointInTrig = firstPointEboId - 2;
+                lastPointInTrig >= -addedHomoCoords.length;
+                lastPointInTrig--) {
+              ebo_.addAll([
+                firstPointEboId,
+                lastPointInTrig + 1,
+                lastPointInTrig,
+              ]);
+            }
+          }
+          break;
         default:
         // TODO: add more clipping
       }

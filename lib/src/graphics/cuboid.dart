@@ -56,45 +56,19 @@ class Cuboid extends Transformable implements Drawable {
     }
     // TODO: remove
     _vertices[0].color.setFrom(Colors.red);
-    _vertices[1].color.setFrom(Colors.red);
-    _vertices[2].color.setFrom(Colors.green);
+    _vertices[1].color.setFrom(Colors.yellow);
+    _vertices[2].color.setFrom(Colors.blue);
     _vertices[3].color.setFrom(Colors.green);
 
     _vertices[4].color.setFrom(Colors.red);
-    _vertices[5].color.setFrom(Colors.red);
-    _vertices[6].color.setFrom(Colors.green);
+    _vertices[5].color.setFrom(Colors.cyan);
+    _vertices[6].color.setFrom(Colors.white);
     _vertices[7].color.setFrom(Colors.green);
   }
 
   @override
   void drawOn(BaseCanvas c, RenderState s) {
     s.transform.multiply(transform);
-    // c.drawVertices(_vertices, PrimitiveType.triangle, s, ebo: _ebo);
-    c.drawVertices(_vertices, PrimitiveType.line, s, ebo: [
-      0,
-      1,
-      1,
-      2,
-      2,
-      3,
-      3,
-      0,
-      4,
-      5,
-      5,
-      7,
-      7,
-      6,
-      6,
-      4,
-      0,
-      4,
-      1,
-      5,
-      2,
-      7,
-      3,
-      6
-    ]);
+    c.drawVertices(_vertices, PrimitiveType.triangle, s, ebo: _ebo);
   }
 }
