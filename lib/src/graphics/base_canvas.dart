@@ -190,25 +190,6 @@ abstract class BaseCanvas extends SizeCheck {
       for (final i in ebo_) {
         drawPoint(homoCoordAt(i), pointAt(i).color);
       }
-    } else if (type == PrimitiveType.lineLoop) {
-      final n = ebo_.length;
-      assert(n >= 3, 'Cannot create line loop with < 3 vertices');
-      // Draw every lines except the one connecting `n-1` and `0` vertex
-      for (var i = 1; i < n; ++i) {
-        final (id, idpp) = (ebo_[i - 1], ebo_[i]);
-        drawLine(
-          homoCoordAt(id),
-          homoCoordAt(idpp),
-          pointAt(id).color,
-          pointAt(idpp).color,
-        );
-      }
-      drawLine(
-        homoCoordAt(ebo_.last),
-        homoCoordAt(ebo_.first),
-        pointAt(ebo_.last).color,
-        pointAt(ebo_.first).color,
-      );
     } else if (type == PrimitiveType.line) {
       final n = ebo_.length;
       assert(n.isEven, 'Cannot build lines with odd number of vertices');
