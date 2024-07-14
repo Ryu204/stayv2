@@ -62,9 +62,10 @@ class ConsoleWindow extends BaseCanvas {
     _consoleStdoutBuffer.clear();
     for (final (iw, ih, c) in changes) {
       _consoleStdoutBuffer.writeAll([
-        ansiCursorPosition(ih, iw),
         c.ansiSetBackgroundColorSequence,
+        ansiCursorPosition(ih, iw),
         ' ',
+        ansiResetColor
       ]);
     }
     _console.write(_consoleStdoutBuffer);
