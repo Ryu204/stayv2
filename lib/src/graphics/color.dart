@@ -5,7 +5,7 @@ typedef Color = Vector4;
 
 final _colorsMap = [
   (ConsoleColor.black, Vector4(0, 0, 0, 1)),
-  (ConsoleColor.blue, Vector4(0, 0, 0.5, 1)),
+  (ConsoleColor.blue, Vector4(0, 0, 0.8, 1)),
   (ConsoleColor.brightBlack, Vector4(0.5, 0.5, 0.5, 1.0)),
   (ConsoleColor.brightBlue, Vector4(0, 0, 1, 1)),
   (ConsoleColor.brightCyan, Vector4(0, 1.0, 1.0, 1.0)),
@@ -13,12 +13,13 @@ final _colorsMap = [
   (ConsoleColor.brightMagenta, Vector4(1, 0, 1, 1)),
   (ConsoleColor.brightRed, Vector4(1, 0, 0, 1)),
   (ConsoleColor.brightWhite, Vector4(1, 1, 1, 1)),
-  (ConsoleColor.cyan, Vector4(0, 0.5, 0.5, 1.0)),
-  (ConsoleColor.green, Vector4(0, 0.5, 0, 1)),
-  (ConsoleColor.magenta, Vector4(0.5, 0, 0.5, 1.0)),
-  (ConsoleColor.red, Vector4(0.5, 0, 0, 1)),
-  (ConsoleColor.white, Vector4(.7, .7, .7, 1)),
-  (ConsoleColor.yellow, Vector4(.5, .5, 0, 1)),
+  (ConsoleColor.brightYellow, Vector4(1, 1, 0, 1)),
+  (ConsoleColor.cyan, Vector4(0, 0.8, 0.8, 1.0)),
+  (ConsoleColor.green, Vector4(0, 0.8, 0, 1)),
+  (ConsoleColor.magenta, Vector4(0.8, 0, 0.8, 1.0)),
+  (ConsoleColor.red, Vector4(0.8, 0, 0, 1)),
+  (ConsoleColor.white, Vector4(.9, .9, .9, 1)),
+  (ConsoleColor.yellow, Vector4(.8, .8, 0, 1)),
 ];
 
 ConsoleColor closestColorMatch(Color c) {
