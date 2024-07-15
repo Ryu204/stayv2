@@ -8,6 +8,7 @@ import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/console/ansi.dart';
 import 'package:stayv2/src/graphics/console_color_buffer.dart';
 import 'package:stayv2/src/graphics/edge_function.dart';
+import 'package:stayv2/src/graphics/texture.dart';
 import 'package:stayv2/src/utils/more_math.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -141,8 +142,12 @@ class ConsoleWindow extends BaseCanvas {
     Vector4 c,
     Color ca,
     Color cb,
-    Color cc,
-  ) {
+    Color cc, {
+    Texture2d? tex,
+    Vector2? texCoordsA,
+    Vector2? texCoordsB,
+    Vector2? texCoordsC,
+  }) {
     // Calculate bounding box of triangle
     final minXy = Vector2([a.x, b.x, c.x].min, [a.y, b.y, c.y].min);
     final maxXy = Vector2([a.x, b.x, c.x].max, [a.y, b.y, c.y].max);
@@ -176,7 +181,14 @@ class ConsoleWindow extends BaseCanvas {
         aa /= area;
         ab /= area;
         ac /= area;
-        final col = ca * aa + cb * ab + cc * ac;
+        final baseColor = ca * aa + cb * ab + cc * ac;
+        final texCoord = linearCombV2(
+          [texCoordsA!, texCoordsB!, texCoordsC!],
+          [aa, ab, ac],
+        );
+        // TODO: Other blend mode?
+        final col =
+            tex == null ? baseColor : (baseColor..multiply(tex.get(texCoord)));
         final z = camera.type == CameraType.perspective
             ? a.w * aa + b.w * ab + c.w * ac
             : a.z * aa + b.z * ab + c.z * ac;
