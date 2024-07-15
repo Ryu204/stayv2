@@ -5,6 +5,7 @@ import 'package:stayv2/src/graphics/clipping.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:stayv2/src/graphics/drawable.dart';
 import 'package:stayv2/src/graphics/size_check.dart';
+import 'package:stayv2/src/graphics/texture.dart';
 import 'package:stayv2/src/graphics/vertex.dart';
 import 'package:stayv2/src/graphics/render_state.dart';
 import 'package:stayv2/src/utils/more_math.dart';
@@ -24,11 +25,32 @@ abstract class BaseCanvas extends SizeCheck {
   // final camera = Camera.ortho(width: 10, height: 10, far: 100)
   //   ..setRotation(pi, axis: Vector3(0, 1, 0))
   //   ..move(Vector3(0, 0, -1));
+  final _textureList = TextureList();
+  late String _defaultTexture;
+
+  BaseCanvas() {
+    _defaultTexture =
+        _textureList.add(Texture2d.createFromFile('assets/default.png'));
+  }
+
+  Texture2d get defaultTexture {
+    return _textureList.get(_defaultTexture);
+  }
 
   void drawPoint(Vector4 pos, Color c);
   void drawLine(Vector4 a, Vector4 b, Color ca, Color cb);
   void drawTriangle(
-      Vector4 a, Vector4 b, Vector4 c, Color ca, Color cb, Color cc);
+    Vector4 a,
+    Vector4 b,
+    Vector4 c,
+    Color ca,
+    Color cb,
+    Color cc, {
+    Texture2d? tex,
+    Vector2? texCoordsA,
+    Vector2? texCoordsB,
+    Vector2? texCoordsC,
+  });
   void clear({Color color});
   void display();
 
@@ -41,6 +63,7 @@ abstract class BaseCanvas extends SizeCheck {
     PrimitiveType type,
     RenderState st, {
     List<int>? ebo,
+    Texture2d? texture,
   }) {
     /// We copy [ebo] to modify it in subsequence calculations
     List<int> ebo_;
@@ -83,14 +106,20 @@ abstract class BaseCanvas extends SizeCheck {
               continue;
             }
             if (t1 > epsilon) {
-              addedVertices
-                  .add(Vertex(Vector3.zero(), lerpV4(p0.color, p1.color, t1)));
+              addedVertices.add(Vertex.withTexCoords(
+                Vector3.zero(),
+                lerpV4(p0.color, p1.color, t1),
+                lerpV2(p0.texCoords, p1.texCoords, t1),
+              ));
               addedHomoCoords.add(lerpV4(tf0, tf1, t1));
               ebo_[i] = -addedVertices.length;
             }
             if (t2 < 1.0 - epsilon) {
-              addedVertices
-                  .add(Vertex(Vector3.zero(), lerpV4(p0.color, p1.color, t2)));
+              addedVertices.add(Vertex.withTexCoords(
+                Vector3.zero(),
+                lerpV4(p0.color, p1.color, t2),
+                lerpV2(p0.texCoords, p1.texCoords, t2),
+              ));
               addedHomoCoords.add(lerpV4(tf0, tf1, t2));
               ebo_[i + 1] = -addedVertices.length;
             }
@@ -131,10 +160,14 @@ abstract class BaseCanvas extends SizeCheck {
 
             final firstPointEboId = -addedHomoCoords.length - 1;
             for (final newV in newVertices) {
-              addedVertices.add(Vertex(
+              addedVertices.add(Vertex.withTexCoords(
                 Vector3.zero(),
                 linearCombV4(
                   [a.color, b.color, c.color],
+                  [newV.x, newV.y, newV.z],
+                ),
+                linearCombV2(
+                  [a.texCoords, b.texCoords, c.texCoords],
                   [newV.x, newV.y, newV.z],
                 ),
               ));
@@ -159,7 +192,7 @@ abstract class BaseCanvas extends SizeCheck {
       }
     }
 
-    final mvp = camera.projectAndViewProduct().multiplied(st.transform);
+    final mvp = camera.projectAndViewProduct()..multiply(st.transform);
     final (top, left, width, height) = (0.0, 0.0, displaySize.x, displaySize.y);
 
     homoCoords = points.map((v) {
@@ -212,7 +245,18 @@ abstract class BaseCanvas extends SizeCheck {
                   pointAt(ebo_[i]),
                 ))
             .toList();
-        drawTriangle(a.$1, b.$1, c.$1, a.$2.color, b.$2.color, c.$2.color);
+        drawTriangle(
+          a.$1,
+          b.$1,
+          c.$1,
+          a.$2.color,
+          b.$2.color,
+          c.$2.color,
+          tex: texture,
+          texCoordsA: a.$2.texCoords,
+          texCoordsB: b.$2.texCoords,
+          texCoordsC: c.$2.texCoords,
+        );
       }
     } else {
       throw UnimplementedError();

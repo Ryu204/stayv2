@@ -15,6 +15,10 @@ class Rectangle extends Transformable implements Drawable {
 
   Rectangle({required double w, required double h}) {
     size = Vector2(w, h);
+    _vertices[0].texCoords.setValues(0, 0);
+    _vertices[1].texCoords.setValues(1, 0);
+    _vertices[2].texCoords.setValues(1, 1);
+    _vertices[3].texCoords.setValues(0, 1);
   }
 
   set size(Vector2 val) {
@@ -35,8 +39,10 @@ class Rectangle extends Transformable implements Drawable {
       v.color.setFrom(c);
     }
     // TODO: remove
-    _vertices.last.color.setFrom(Colors.green);
+    _vertices[0].color.setFrom(Colors.red);
     _vertices[1].color.setFrom(Colors.blue);
+    _vertices[2].color.setFrom(Colors.white);
+    _vertices[3].color.setFrom(Colors.green);
   }
 
   @override
@@ -47,6 +53,7 @@ class Rectangle extends Transformable implements Drawable {
       PrimitiveType.triangle,
       s,
       ebo: [0, 2, 1, 0, 3, 2],
+      texture: c.defaultTexture,
     );
   }
 }
