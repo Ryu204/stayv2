@@ -1,4 +1,3 @@
-import 'package:dart_console/dart_console.dart';
 import 'package:stayv2/src/graphics/color.dart';
 import 'package:vector_math/vector_math.dart';
 
@@ -20,7 +19,7 @@ class ConsoleColorBuffer {
   double far = 100;
   final _trueColor = <TrueColorCell>[];
   final _displayDoubleBuffer =
-      List.generate(2, (_) => <ConsoleColor>[], growable: false);
+      List.generate(2, (_) => <TerminalColor>[], growable: false);
   var _activeDisplayBuffer = 0;
   var _needRefresh = true;
 
@@ -45,7 +44,7 @@ class ConsoleColorBuffer {
       if (buf.length < count) {
         buf.addAll(List.generate(
           count - buf.length,
-          (_) => ConsoleColor.black,
+          (_) => TerminalColor('', '', ''),
         ));
       } else {
         buf.length = count;
@@ -73,13 +72,13 @@ class ConsoleColorBuffer {
   }
 
   /// Returns list of pixel needs to be updated after comparing to the last swap call.
-  List<(int iw, int ih, ConsoleColor c)> swap() {
-    final res = <(int iw, int ih, ConsoleColor c)>[];
+  List<(int iw, int ih, TerminalColor c)> swap() {
+    final res = <(int iw, int ih, TerminalColor c)>[];
     for (final (i, c) in _trueColor.indexed) {
-      final newColor = closestColorMatch(c.bgr);
+      final newColor = getColorString(c.bgr);
       _displayDoubleBuffer[_activeDisplayBuffer][i] = newColor;
-      final needsUpdate = newColor.index !=
-          _displayDoubleBuffer[1 - _activeDisplayBuffer][i].index;
+      final needsUpdate =
+          !newColor.eq(_displayDoubleBuffer[1 - _activeDisplayBuffer][i]);
       if (needsUpdate || _needRefresh) {
         res.add((i % _w, i ~/ _w, newColor));
       }
