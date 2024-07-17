@@ -30,7 +30,7 @@ abstract class BaseCanvas extends SizeCheck {
 
   BaseCanvas() {
     _defaultTexture =
-        _textureList.add(Texture2d.createFromFile('assets/default.png'));
+        _textureList.add(Texture2d.createFromFile('assets/transparent.png'));
   }
 
   Texture2d get defaultTexture {
