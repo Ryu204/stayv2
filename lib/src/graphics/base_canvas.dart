@@ -30,7 +30,7 @@ abstract class BaseCanvas extends SizeCheck {
 
   BaseCanvas() {
     _defaultTexture =
-        _textureList.add(Texture2d.createFromFile('assets/transparent.png'));
+        _textureList.add(Texture2d.createFromFile('assets/default.png'));
   }
 
   Texture2d get defaultTexture {
@@ -63,7 +63,6 @@ abstract class BaseCanvas extends SizeCheck {
     PrimitiveType type,
     RenderState st, {
     List<int>? ebo,
-    Texture2d? texture,
   }) {
     /// We copy [ebo] to modify it in subsequence calculations
     List<int> ebo_;
@@ -187,8 +186,6 @@ abstract class BaseCanvas extends SizeCheck {
             }
           }
           break;
-        default:
-        // TODO: add more clipping
       }
     }
 
@@ -218,6 +215,8 @@ abstract class BaseCanvas extends SizeCheck {
 
     homoCoords.forEach(convertToScreenSpace);
     addedHomoCoords.forEach(convertToScreenSpace);
+
+    final defaultTexture = _textureList.get(_defaultTexture);
 
     if (type == PrimitiveType.point) {
       for (final i in ebo_) {
@@ -252,7 +251,8 @@ abstract class BaseCanvas extends SizeCheck {
           a.$2.color,
           b.$2.color,
           c.$2.color,
-          tex: texture,
+          tex:
+              st.texture ?? (st.defaultTextureFallback ? defaultTexture : null),
           texCoordsA: a.$2.texCoords,
           texCoordsB: b.$2.texCoords,
           texCoordsC: c.$2.texCoords,
