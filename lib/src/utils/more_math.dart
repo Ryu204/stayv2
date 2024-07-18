@@ -1,9 +1,17 @@
 import 'dart:math' as m;
 
+import 'package:collection/collection.dart';
+import 'package:stayv2/src/graphics/color.dart';
 import 'package:vector_math/vector_math.dart';
 
 double clamp(double val, double min, double max) {
   return m.min(max, m.max(min, val));
+}
+
+void clampColor(Color c) {
+  c.storage.forEachIndexed((i, v) {
+    c.storage[i] = clamp(v, 0, 1);
+  });
 }
 
 double lerp<T extends num>(T start, T end, double dt) {

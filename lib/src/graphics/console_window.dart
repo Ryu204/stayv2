@@ -91,13 +91,14 @@ class ConsoleWindow extends BaseCanvas {
         maxXy.y < 0) {
       return;
     }
-    final length_ = a.xy.distanceTo(b.xy);
+    var length_ = a.xy.distanceTo(b.xy);
     if (length_ < _eps) {
       return;
     }
 
     var (x0, y0) = (a.x.toInt(), a.y.toInt());
     final (x1, y1) = (b.x.toInt(), b.y.toInt());
+    length_ = sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
     final (dx, sx, dy, sy) = (
       (x1 - x0).abs(),
       x0 < x1 ? 1 : -1,
@@ -107,9 +108,8 @@ class ConsoleWindow extends BaseCanvas {
     var err = dx + dy;
     var e2 = 0;
     while (true) {
-      final dt =
-          sqrt((x0 - a.x) * (x0 - a.x) + (y0 - a.y) * (y0 - a.y)) / length_;
-      var (aa, ab) = ((1 - dt) / a.w, dt / b.w);
+      final dt = sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) / length_;
+      var (aa, ab) = (dt / a.w, (1 - dt) / b.w);
       final length = aa + ab;
       aa /= length;
       ab /= length;
@@ -192,6 +192,7 @@ class ConsoleWindow extends BaseCanvas {
         final z = camera.type == CameraType.perspective
             ? a.w * aa + b.w * ab + c.w * ac
             : a.z * aa + b.z * ab + c.z * ac;
+        clampColor(col);
         _colorBuffer.set(
           center.x.floor(),
           center.y.floor(),

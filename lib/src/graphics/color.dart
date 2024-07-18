@@ -110,7 +110,16 @@ String _convertTrueColor(Color c) {
   final g = (c.g * 255).floor();
   final b = (c.b * 255).floor();
 
+  assert(
+    isNormalizedColor(c),
+    'Why is [c] not in [0,1] range?',
+  );
+
   return '\x1b[48;2;$r;$g;${b}m';
+}
+
+bool isNormalizedColor(Color c) {
+  return c.storage.firstWhereOrNull((i) => i < 0 || i > 1) == null;
 }
 
 class TerminalColor {
