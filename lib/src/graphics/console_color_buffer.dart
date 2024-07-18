@@ -87,6 +87,7 @@ class ConsoleColorBuffer {
 
   /// If [iw] or [ih] or [zBuf] is not inside the screen, nothing happens
   void set(int iw, int ih, double zBuf, Color bgr) {
+    assert(isNormalizedColor(bgr), 'Invalid color passed to color buffer');
     if (iw < 0 || ih < 0 || iw >= _w || ih >= _h || zBuf < near || zBuf > far) {
       return;
     }
