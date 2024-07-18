@@ -15,6 +15,12 @@ class Transformable {
     return this;
   }
 
+  Transformable setPosition(Vector3 pos) {
+    _position.setFrom(pos);
+    _setDirtyFlags();
+    return this;
+  }
+
   Transformable rotate(double rad, {Vector3? axis}) {
     _rotation.add(Quaternion.axisAngle(axis ?? Vector3(0, 0, 1), rad));
     _setDirtyFlags();
