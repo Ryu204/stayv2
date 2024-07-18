@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:meta/meta.dart';
 import 'package:stayv2/src/graphics/console_window.dart';
 import 'package:stayv2/src/graphics/cuboid.dart';
@@ -69,14 +71,19 @@ class Application {
     ..move(Vector3(3, 1, 0))
     ..setRandomColor();
   Rectangle rect2 = Rectangle(w: 1, h: 3)..move(Vector3(2, 2, 0));
-  Cuboid cube = Cuboid(w: 4, h: 2, d: 15, uvType: CuboidUvType.cross)
+  Cuboid cube = Cuboid(w: 2, h: 5, d: 4, uvType: CuboidUvType.cross)
     ..move(Vector3(2, -1, 3));
+  Cuboid cube2 = Cuboid(w: 1, h: 1, d: 1, uvType: CuboidUvType.separate)
+    ..rotate(24, axis: Vector3.random())
+    ..setRandomColor()
+    ..move(Vector3(0, 0, 4));
   final randomAxis = Vector3(0.2, 1.5, 2);
 
   void _render(double t) {
     rect.setRotation(t / 3, axis: Vector3(0, 1, 0));
     rect2.setRotation(t / 2);
     cube.setRotation(t / 10, axis: randomAxis);
+    cube2.setPosition(Vector3(3 * sin(t), -2, 3));
     _window.clear();
     randomAxis.length = 3;
     _window.drawVertices(
@@ -90,6 +97,7 @@ class Application {
     _window.draw(rect);
     _window.draw(cube);
     _window.draw(rect2);
+    _window.draw(cube2);
     _window.display();
   }
 
